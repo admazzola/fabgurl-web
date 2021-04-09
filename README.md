@@ -7,7 +7,9 @@ We burn tokens
 
 
 ### TODO
- 
+ add an easy way to burn 
+ add an easy way to mint toast 
+ add a way to steal toast 
 
 
 ### Development commands

@@ -25,22 +25,22 @@
          
 
 
-         <div class="column w-col w-col-6 mt-8 py-8">
+         <div class="  w-col   mt-8 py-8">
 
-            Top Burners  
+           <div> Top Burners </div>
 
-          <GenericTable />
+            <div class="my-2 mb-8 bg-teal-500 px-1 border-2 border-black text-white rounded inline-block"> 0xBTC </div>
+
+          <GenericTable 
+          v-bind:labelsArray="['from', 'amount']"
+          v-bind:rowsArray="burnRowsArray"
+          
+          />
 
 
 
          </div>
-         <div class="column-2 w-col w-col-6  ">
-           
-             
-
-
-
-         </div>
+         
        </div>
      </div>
    </div>
@@ -150,24 +150,24 @@ export default {
           async fetchBurnedAssets(){
 
             let apiURI = 'https://api.starflask.com/api/v1/testapikey'
-            let inputData = {requestType: 'burned_erc20_by_token', input: { publicAddress:'0x810E096DDa9ae3Ae2b55a9c45068F9FE8eeea6db' } } 
+            let inputData = {requestType: 'burned_ERC20_by_token', input: { token:'0xb6ed7644c69416d67b522e20bc294a9a9b405b31' } } 
             let results = await StarflaskAPIHelper.resolveStarflaskQuery(apiURI ,  inputData   )
-            console.log(results)
+            console.log('results',results)
+            
+            let burns = results.output 
 
-          },
+            this.burnRowsArray = [] 
 
-          clickedBidRowCallback(row){
-            console.log('clicked bid row',row )
+            for(let burn of burns){
 
-            this.$router.push({ path: `/bid/${row.signature}` })
-          },
-
-          clickedSalesRowCallback(row){
-            console.log('clicked sales row',row )
+              this.burnRowsArray.push({from: burn.from,  amount:burn.amount   })
+            }
 
 
-            window.open(this.web3Plug.getExplorerLinkForTxHash(row.txHash, 1  ));
+
           } 
+
+       
 
   }
 }
