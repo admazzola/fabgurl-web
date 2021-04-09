@@ -1,6 +1,6 @@
 {
-  "name": "buy-the-floor-web",
-  "description": "Innovative NFT Exchange",
+  "name": "burnbook-web",
+  "description": "We burn tokens",
   "version": "0.1.0",
   "type": "module",
   "postcss": {
