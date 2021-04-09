@@ -4,9 +4,9 @@
     <div class="container w-container">
       <div class="w-full flex flex-row">
         <div class="brand">
-        <img class="inline-block  " width="24" height="24" src="/logo_sm.png" />
+       
         </div>
-        <router-link to="/" class='brand w-nav-brand w--current flex-grow inline text-xl text-gray-900 font-bold'>Starflask API</router-link>
+        <router-link to="/" class='brand w-nav-brand w--current flex-grow inline text-xl text-gray-900 font-bold'>🔥 The Burnbook</router-link>
 
  
  
