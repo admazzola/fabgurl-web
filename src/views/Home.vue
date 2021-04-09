@@ -29,6 +29,9 @@
 
             Top Burners  
 
+          <GenericTable />
+
+
 
          </div>
          <div class="column-2 w-col w-col-6  ">
@@ -46,10 +49,7 @@
     <div class="section  bg-white border-b-2 border-black ">
      <div class="w-container pt-8">
 
-         
-
-        
-
+          
         
          
 
@@ -77,6 +77,8 @@ import Navbar from './components/Navbar.vue';
  
 import Footer from './components/Footer.vue';
 import TabsBar from './components/TabsBar.vue';
+
+import GenericTable from './components/GenericTable.vue'
   
 import StarflaskAPIHelper from '../js/starflask-api-helper.js';
 
@@ -84,16 +86,14 @@ import StarflaskAPIHelper from '../js/starflask-api-helper.js';
 export default {
   name: 'Home',
   props: [],
-  components: {Navbar, Footer, TabsBar,  },
+  components: {Navbar, Footer, TabsBar, GenericTable  },
   data() {
     return {
       web3Plug: new Web3Plug() ,
-      activePanelId: null,
-      selectedTab:"bids",
-      bidRowsArray:[],
-      salesRowsArray: [], 
-      nftContractOptionsList: [] ,
-      filterByNFTContractAddress: null,
+      
+     // selectedTab:"burns",
+      burnRowsArray:[] 
+      
 
       
     }
@@ -123,7 +123,7 @@ export default {
       this.web3Plug.reconnectWeb()
 
          
-      this.fetchOwnedAssets(  )
+      this.fetchBurnedAssets(  )
 
   },
   mounted: function () {
@@ -132,7 +132,7 @@ export default {
    
   }, 
   methods: {
-          setActivePanel(panelId){
+          /*setActivePanel(panelId){
               if(panelId == this.activePanelId){
                 this.activePanelId = null;
                 return 
@@ -145,12 +145,12 @@ export default {
               this.selectedTab = tabname.toLowerCase()
 
 
-          },
+          },*/
 
-          async fetchOwnedAssets(){
+          async fetchBurnedAssets(){
 
-            let apiURI = 'http://localhost:3000/api/v1/testapikey'
-            let inputData = {requestType: 'all_ERC721', input: { publicAddress:'0x810E096DDa9ae3Ae2b55a9c45068F9FE8eeea6db' } } 
+            let apiURI = 'https://api.starflask.com/api/v1/testapikey'
+            let inputData = {requestType: 'burned_erc20_by_token', input: { publicAddress:'0x810E096DDa9ae3Ae2b55a9c45068F9FE8eeea6db' } } 
             let results = await StarflaskAPIHelper.resolveStarflaskQuery(apiURI ,  inputData   )
             console.log(results)
 
