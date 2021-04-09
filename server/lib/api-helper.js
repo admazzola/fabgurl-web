@@ -5,6 +5,16 @@
     import FileHelper from './file-helper.js'
 
     import web3utils from 'web3-utils'
+
+    /*
+
+    Sample request: 
+        https://reqbin.com/
+
+    { "requestType":"burned_ERC20_by_token", "input":{ "token":"0xb6ed7644c69416d67b522e20bc294a9a9b405b31"}}
+
+
+    */
     
  
     export default class APIHelper  {
