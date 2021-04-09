@@ -82,6 +82,7 @@ import GenericTable from './components/GenericTable.vue'
   
 import StarflaskAPIHelper from '../js/starflask-api-helper.js';
 
+import MathHelper from '../js/math-helper.js'
 
 export default {
   name: 'Home',
@@ -160,7 +161,7 @@ export default {
 
             for(let burn of burns){
 
-              this.burnRowsArray.push({from: burn.from,  amount:burn.amount   })
+              this.burnRowsArray.push({from: burn.from,  amount: MathHelper.rawAmountToFormatted(burn.amount,8)   })
             }
 
 
