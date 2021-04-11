@@ -182,6 +182,16 @@ export default {
               this.burnRowsArray.push({ from: burn.from,  amount: MathHelper.rawAmountToFormatted(burn.amount,8)  , hasToast: hasToast  })
             }
 
+            for(let [key,value] of Object.entries(this.accountHasToast)){
+
+              let matchingBurnRows = this.burnRowsArray.filter(row => row.from.toLowerCase() == key  )
+
+              if(matchingBurnRows.length == 0 && this.accountHasToast[key.toLowerCase()]){
+                this.burnRowsArray.push({ from: key,  amount: MathHelper.rawAmountToFormatted(0,8)  , hasToast: true  })
+              }
+
+            }
+
 
 
           },
@@ -198,6 +208,8 @@ export default {
 
 
             if(results.success){
+
+              console.log(results )
                for(let row of results.output){
                   this.accountHasToast[row.accountAddress.toLowerCase()] = (row.tokenIds && row.tokenIds.length > 0)
               }
