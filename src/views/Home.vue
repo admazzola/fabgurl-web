@@ -192,7 +192,9 @@ export default {
 
             }
 
+            this.burnRowsArray = this.burnRowsArray.sort((a,b)=>{return b.amount - a.amount})
 
+ 
 
           },
 
