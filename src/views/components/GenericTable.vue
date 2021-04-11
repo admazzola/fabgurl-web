@@ -10,7 +10,7 @@
           <tbody v-cloak>
             <tr v-for="row of rowsArray" class="hover:bg-teal-200 cursor-pointer" @click="clickedRow(row)">
                
-              <td v-for="(label, index) in labelsArray" >{{Object.values(row)[index]}}</td>
+              <td v-for="(label, index) in labelsArray" ><span v-if="(index==0) && row.hasToast"> 🍞 </span>{{Object.values(row)[index]}}</td>
               
             </tr>
              

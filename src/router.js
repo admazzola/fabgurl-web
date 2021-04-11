@@ -4,6 +4,7 @@ import Router from 'vue-router'
 
 import Home from './views/Home.vue'
 import Burn from './views/Burn.vue'
+import ClaimToast from './views/ClaimToast.vue'
  
 import Dashboard from './views/Dashboard.vue'
 
@@ -28,6 +29,12 @@ export default new Router({
       name: 'burn',
       component: Burn
     } ,
+    {
+      path: '/claimtoast',
+      name: 'claimtoast',
+      component: ClaimToast
+    } ,
+
 
 
     {
