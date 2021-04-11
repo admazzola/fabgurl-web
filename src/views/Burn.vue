@@ -24,7 +24,7 @@
             
 
 
-              <div class="text-lg font-bold"> Burn tokens to the Burnbook Record</div>
+              <div class="text-lg font-bold"> Add to the Burnbook Record</div>
                
 
         <div  class=" " v-if="!connectedToWeb3">
@@ -60,7 +60,7 @@
 
               
            <div class="mb-4 ">
-              <label   class="block text-md font-medium font-bold text-gray-800  ">Bid Amount</label>
+              <label   class="block text-md font-medium font-bold text-gray-800  "> Amount</label>
 
               <div class="flex flex-row">
               <div class="w-1/2 px-4">
@@ -74,7 +74,29 @@
            
             </div>
 
+        <hr>
+          <div class="py-4" v-if=" connectedToWeb3 && !bidSubmitComplete">
+             
+ 
 
+            <div> nftAddress: <a  target="_blank" v-bind:href="web3Plug.getExplorerLinkForAddress(formInputs.nftContractAddress)"> {{formInputs.nftContractAddress}} </a> </div>
+
+            <div v-if="this.formInputs.requireProjectId" > projectId: {{ this.formInputs.projectId }} </div>
+
+            <div> CurrencyAddress: <a  target="_blank" v-bind:href="web3Plug.getExplorerLinkForAddress(formInputs.tokenContractAddress)"> {{formInputs.tokenContractAddress}} </a> </div>
+
+            <div> bidAmount: {{getTokenBurnAmountFormatted()}}</div>
+
+            <div class="hidden"> bidAmountRaw: {{getTokenBurnAmountRaw()}}</div>
+
+            <div> Decimals: {{this.formInputs.tokenDecimals}}</div>
+
+                 <div class="  p-4">
+                     <div @click="burnTokens" class="select-none bg-teal-300 p-2 inline-block rounded border-black border-2 cursor-pointer"> 🔥 Burn 🔥 </div>
+                </div>
+
+
+          </div>
             
 
 
@@ -174,7 +196,10 @@ export default {
         if(!chainId) chainId = 1
         let contractData = this.web3Plug.getContractDataForNetworkID(chainId)
 
-      
+        if(this.connectedToWeb3){
+           this.currencyTokensOptionsList= BuyTheFloorHelper.getClientConfigForNetworkId(this.activeNetworkId).currencyTokens 
+         
+        }
 
 
       }.bind(this));
@@ -211,6 +236,18 @@ export default {
     this.web3Plug.clearEventEmitter()
   },
   methods: {
+
+        async updateBalances(){
+          
+          let contractData = this.web3Plug.getContractDataForActiveNetwork()
+
+          let activeAddress = this.web3Plug.getActiveAccountAddress()
+          let currencyAddress = this.formInputs.tokenContractAddress
+
+
+        },
+
+
         onCurrencySelectCallback(optionData){
            
           let contractData = this.web3Plug.getContractDataForActiveNetwork()
@@ -237,14 +274,32 @@ export default {
             return (this.tokensApproved[this.formInputs.tokenContractAddress] >= parseInt(this.getTokenBidAmountRaw()))
           },
 
+        getSelectedCurrencyBalance(){
+          return this.tokenBalances[this.formInputs.tokenContractAddress]
+        },
+          getSelectedCurrencyBalanceFormatted(){
+          return this.web3Plug.rawAmountToFormatted( this.getSelectedCurrencyBalance(), this.formInputs.tokenDecimals ) 
+        },
+
           approveButtonVisible() {
  
             return (this.tokensApproved[this.formInputs.tokenContractAddress] == 0)
           },
 
-            getTokenBidAmountRaw(){
+            getTokenBurnAmountRaw(){
           return this.web3Plug.formattedAmountToRaw( this.formInputs.tokenBidAmountFormatted, this.formInputs.tokenDecimals ) 
         },
+
+        getTokenBurnAmountFormatted(){
+          return this.web3Plug.rawAmountToFormatted( this.getTokenBurnAmountRaw(), this.formInputs.tokenDecimals ) 
+        },
+
+        burnTokens(){
+
+
+          
+        }
+
 
 
   }
