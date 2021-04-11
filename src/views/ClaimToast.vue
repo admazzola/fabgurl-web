@@ -32,6 +32,14 @@
 
          
           <div id="form  " class=" my-4 " v-if="connectedToWeb3">
+
+               <div class="mb-4 ">
+              <label   class="block text-md font-medium font-bold text-gray-800  "> Slices Toasted {{slicesToasted}}/21</label>
+
+              
+           
+            </div>
+
             
             
                <div class="mb-4 ">
@@ -121,7 +129,8 @@ export default {
 
       connectedToWeb3: false,
       currentBlockNumber: 0,
-      claimSubmitComplete:false
+      claimSubmitComplete:false,
+      slicesToasted: 0
 
        
  
@@ -181,9 +190,9 @@ export default {
   async mounted(){
      await this.web3Plug.reconnectWeb()
 
-     //updateTimer = setInterval(this.updateBalances.bind(this), 5000);
+      updateTimer = setInterval(this.updateBalances.bind(this), 5000);
 
-
+      this.updateBalances()
   },
   beforeDestroy(){
     this.web3Plug.clearEventEmitter()
@@ -196,22 +205,19 @@ export default {
           
           let contractData = this.web3Plug.getContractDataForNetworkID(chainId)
 
-          let activeAddress = this.web3Plug.getActiveAccountAddress()
-          let currencyAddress = this.formInputs.tokenContractAddress
+          let activeAddress = this.web3Plug.getActiveAccountAddress() 
 
-          console.log('contractData',contractData)
+           let digitaltoastContractAddress = contractData['digitaltoast'].address 
 
-          let bbContractAddress = contractData['burnbook'].address
+         
+          let toastContract = this.web3Plug.getCustomContract(DigitalToastABI, digitaltoastContractAddress)
+ 
 
-          console.log('currencyAddress',currencyAddress)
+          let result =  await toastContract.methods.slicesToasted().call({from: activeAddress })
+          this.slicesToasted = parseInt(result) 
           
-          this.tokenBalances[currencyAddress] = await this.web3Plug.getTokenBalance(currencyAddress,activeAddress)
-          this.tokensApproved[currencyAddress] = await this.web3Plug.getTokenAllowance(currencyAddress,bbContractAddress,activeAddress)
 
-           this.currentBlockNumber = await this.web3Plug.getBlockNumber()
-        
 
-          console.log('approve', this.tokensApproved)
           this.$forceUpdate()
 
         },
@@ -288,9 +294,9 @@ export default {
 
                
 
-                let result =  await toastContract.methods.mint(activeAddress,scribbleMessage).send({from: activeAddress })
-                this.claimSubmitComplete = true 
-               
+            let result =  await toastContract.methods.mint(activeAddress,scribbleMessage).send({from: activeAddress })
+            this.claimSubmitComplete = true 
+            
 
 
         },
