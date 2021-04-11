@@ -21,76 +21,64 @@
        <div class="w-column">
 
 
-            <div class="w-row">
+            
+
+
+              <div class="text-lg font-bold"> Burn tokens to the Burnbook Record</div>
                
-                   <div class="mb-4">
-                          <a href="/startselling"  class="px-2 no-underline rounded text-xs select-none inline-block cursor-pointer bg-purple-500 text-white"> < Go Back </a>
-                    </div>
-               
 
-
-
-              
-            </div>
-
-
-
-
-              <div class="text-lg font-bold"> Sell an NFT </div>
-               
+        <div  class=" " v-if="!connectedToWeb3">
+              <NotConnectedToWeb3 />
+          </div>
 
 
          
-          <div  class=" "  >
-
-
-             
-
-            <div v-if="!selectedNFTContractAddress">
-
-                Something went wrong..  
-
-            </div>
-
-
-          <div v-if="selectedNFTContractAddress">
-
-
-
-
-
-            <div class="flex flex-row">
+          <div id="form  " class=" " v-if="connectedToWeb3">
+            
             
 
-                  
 
-                  <div class="text-md  "> Selected Type: <a v-bind:href="'/type/'.concat(typeData.name)" > {{selectedNFTType}} </a> </div>
-                  
-
-
+             <div class="mb-4">
+                <label   class="block text-md font-medium font-bold text-gray-800  ">Token To Burn</label>
                 
+
+                <div class="flex flex-row">
+
+                <GenericDropdown
+                  v-bind:optionList="currencyTokensOptionsList" 
+                  v-bind:onSelectCallback="onCurrencySelectCallback"
+                />
+                  <div class="mb-4 p-4 ml-8" v-if="formInputs.tokenContractAddress">
+                    Balance: {{ getSelectedCurrencyBalanceFormatted() }}
+                </div>
+                </div>
 
 
             </div>
 
-                  <div class="  mt-4  " v-if="typeData">
-
-                    <img v-bind:src="typeData.imgurl" width="128" height="128" />
-                  </div>
-               
+            
 
               
+           <div class="mb-4 ">
+              <label   class="block text-md font-medium font-bold text-gray-800  ">Bid Amount</label>
 
-             
+              <div class="flex flex-row">
+              <div class="w-1/2 px-4">
+                    <input type="number"   v-model="formInputs.tokenBidAmountFormatted"  class="text-gray-900 border-2 border-black font-bold px-4 text-xl focus:ring-indigo-500 focus:border-indigo-500 block w-full py-4 pl-7 pr-12   border-gray-300 rounded-md" placeholder="0.00">
+                </div>
+
+                  <div class="w-1/2 px-4" @click="approveCurrencyToken" v-if=" approveButtonVisible()">
+                     <div class="select-none bg-teal-300 p-2 inline-block rounded border-black border-2 cursor-pointer"> Approve </div>
+                </div>
+              </div>
+           
+            </div>
+
+
+            
 
 
           </div>
-
-
-
-
-          </div>
-
 
           
        </div>
@@ -119,23 +107,49 @@ import Navbar from './components/Navbar.vue';
  
 import Footer from './components/Footer.vue';
  
+import GenericDropdown from './components/GenericDropdown.vue'
+
 import NotConnectedToWeb3 from './components/NotConnectedToWeb3.vue'
 
 import BuyTheFloorHelper from '../js/buythefloor-helper.js'
 
+
+
+var updateTimer;
+
 export default {
-  name: 'Home',
+  name: 'Burn',
   props: [],
-  components: {Navbar, Footer,NotConnectedToWeb3 },
+  components: {Navbar, Footer,NotConnectedToWeb3 , GenericDropdown},
   data() {
     return {
       web3Plug: new Web3Plug() ,
-      nftTypes:  [],
+      formInputs: {
+        
+        tokenContractAddress: null,
+        tokenDecimals: 18,
+
+        nftContractAddress: null,
+        tokenBidAmountFormatted: 0,
+       // expiresAtBlock:0 ,
+        expiresInBlocks: 100000,
+        
+      },
+
       connectedToWeb3: false,
-      selectedNFTType: null,
-      selectedNFTContractAddress:null ,
-      selectedNFTProjectId:null ,
-      typeData: null
+      currentBlockNumber: 0,
+
+      maxExpiresInBlocks: 250000,
+                         
+      ApproveAllAmount: "1000000000000000000000000000000",
+      tokensApproved:{},
+      tokenBalances:{},
+      currencyTokensOptionsList:[ ],
+      nftOptionsList:[ ],
+      submittedBidPacketResponse: null,
+
+      
+      bidSubmitComplete: false
     }
   },
   async created  () {
@@ -160,13 +174,7 @@ export default {
         if(!chainId) chainId = 1
         let contractData = this.web3Plug.getContractDataForNetworkID(chainId)
 
-        this.selectedNFTType = this.$route.params.nft_type.toLowerCase()
-        if(contractData[this.selectedNFTType]){
-            this.selectedNFTContractAddress =  contractData[this.selectedNFTType].address 
-            this.selectedNFTProjectId =  contractData[this.selectedNFTType].projectId 
-        }
-       
-
+      
 
 
       }.bind(this));
@@ -186,49 +194,59 @@ export default {
       chainId = 1
     }
 
-    this.nftTypes = BuyTheFloorHelper.getClientConfigForNetworkId(chainId).nftTypes
+    
     let contractData = this.web3Plug.getContractDataForNetworkID(chainId)
 
-      this.selectedNFTType = this.$route.params.nft_type.toLowerCase()
-      if(contractData[this.selectedNFTType]){
-        this.selectedNFTContractAddress =  contractData[this.selectedNFTType].address
-        this.selectedNFTProjectId =  contractData[this.selectedNFTType].projectId 
-
-        this.typeData = BuyTheFloorHelper.getNFTTypeDataFromName( this.selectedNFTType , chainId ) 
-
-      }
       
 
   }, 
   async mounted(){
      await this.web3Plug.reconnectWeb()
 
+     updateTimer = setInterval(this.updateBalances.bind(this), 5000);
+
+
   },
   beforeDestroy(){
     this.web3Plug.clearEventEmitter()
   },
   methods: {
-        /*onTileClicked(name){
-          console.log('ontileclicked',name )
+        onCurrencySelectCallback(optionData){
+           
+          let contractData = this.web3Plug.getContractDataForActiveNetwork()
 
-           let chainId = this.web3Plug.getActiveNetId()
-            if(!chainId){
-              chainId = 1
-            }
+           console.log('contractData',contractData)
 
-          let contractData = this.web3Plug.getContractDataForNetworkID(chainId)
+          let tokenContract = contractData[optionData.name]
+          
+         
+          this.formInputs.tokenDecimals = tokenContract.decimals
+          this.formInputs.tokenContractAddress = tokenContract.address
+          
+          this.updateBalances();
 
+          
 
-          this.selectedNFTType = name 
-          this.selectedNFTContractAddress = contractData[name].address
-          this.selectedNFTProjectId = contractData[name].projectId
+          //this.restrictBidAmount()
+
+           
         },
-        resetNFTType(){
 
-          this.selectedNFTType = null 
-          this.selectedNFTContractAddress = null
-          this.selectedNFTProjectId = null
-        }*/
+         selectedCurrencyIsApproved() {
+ 
+            return (this.tokensApproved[this.formInputs.tokenContractAddress] >= parseInt(this.getTokenBidAmountRaw()))
+          },
+
+          approveButtonVisible() {
+ 
+            return (this.tokensApproved[this.formInputs.tokenContractAddress] == 0)
+          },
+
+            getTokenBidAmountRaw(){
+          return this.web3Plug.formattedAmountToRaw( this.formInputs.tokenBidAmountFormatted, this.formInputs.tokenDecimals ) 
+        },
+
+
   }
 }
 </script>

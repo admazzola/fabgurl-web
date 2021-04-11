@@ -24,7 +24,7 @@
 
          <div class="  w-col   mt-8  flex ">
            <div class="flex-grow"> </div>
-            <div class="my-2 mb-8 bg-red-500 px-1 border-2 border-black text-white rounded inline-block cursor-pointer select-none" @click="clickedBurnButton"> I want to Burn </div>
+            <div class="my-2 mb-8 bg-red-500 px-1 border-2 border-black text-white rounded inline-block cursor-pointer select-none" @click="clickedBurnButton"> I want to burn </div>
  
            </div>
 
