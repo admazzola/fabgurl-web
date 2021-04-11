@@ -36,6 +36,15 @@
         "stateMutability": "nonpayable",
         "type": "function"
     },
+    {"constant":false,
+        "inputs":[{"name":"spender","type":"address"},
+            {"name":"tokens","type":"uint256"},
+            {"name":"data","type":"bytes"}],
+    "name":"approveAndCall",
+    "outputs":[{"name":"success","type":"bool"}],
+    "payable":false,
+    "stateMutability":"nonpayable",
+    "type":"function"},
     {
         "constant": true,
         "inputs": [],

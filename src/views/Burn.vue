@@ -75,12 +75,9 @@
             </div>
 
         <hr>
-          <div class="py-4" v-if=" connectedToWeb3 && !bidSubmitComplete">
+          <div class="py-4" v-if=" connectedToWeb3 && !burnSubmitComplete">
              
- 
-
-            <div> nftAddress: <a  target="_blank" v-bind:href="web3Plug.getExplorerLinkForAddress(formInputs.nftContractAddress)"> {{formInputs.nftContractAddress}} </a> </div>
-
+  
             <div v-if="this.formInputs.requireProjectId" > projectId: {{ this.formInputs.projectId }} </div>
 
             <div> CurrencyAddress: <a  target="_blank" v-bind:href="web3Plug.getExplorerLinkForAddress(formInputs.tokenContractAddress)"> {{formInputs.tokenContractAddress}} </a> </div>
@@ -89,15 +86,20 @@
 
             <div class="hidden"> bidAmountRaw: {{getTokenBurnAmountRaw()}}</div>
 
-            <div> Decimals: {{this.formInputs.tokenDecimals}}</div>
-
+            
                  <div class="  p-4">
                      <div @click="burnTokens" class="select-none bg-teal-300 p-2 inline-block rounded border-black border-2 cursor-pointer"> 🔥 Burn 🔥 </div>
                 </div>
 
 
           </div>
-            
+
+
+           <div class="py-4" v-if=" connectedToWeb3 && burnSubmitComplete">
+
+              <div class="py-4"> Your tokens were burned! 🔥🔥🔥</div>
+              <div @click="resetForm" class="select-none bg-teal-300 p-2 inline-block rounded border-black border-2 cursor-pointer"> Burn some more </div>
+           </div>
 
 
           </div>
@@ -133,9 +135,9 @@ import GenericDropdown from './components/GenericDropdown.vue'
 
 import NotConnectedToWeb3 from './components/NotConnectedToWeb3.vue'
 
-import BuyTheFloorHelper from '../js/buythefloor-helper.js'
+import BurnbookHelper from '../js/burnbook-helper.js'
 
-
+ 
 
 var updateTimer;
 
@@ -171,7 +173,7 @@ export default {
       submittedBidPacketResponse: null,
 
       
-      bidSubmitComplete: false
+      burnSubmitComplete: false
     }
   },
   async created  () {
@@ -189,7 +191,7 @@ export default {
         this.activeNetworkId = connectionState.activeNetworkId
          
         this.connectedToWeb3 = this.web3Plug.connectedToWeb3()
-        this.nftTypes = BuyTheFloorHelper.getClientConfigForNetworkId(this.web3Plug.getActiveNetId()).nftTypes
+        this.nftTypes = BurnbookHelper.getClientConfigForNetworkId(this.web3Plug.getActiveNetId()).nftTypes
 
 
         let chainId = this.activeNetworkId
@@ -197,7 +199,7 @@ export default {
         let contractData = this.web3Plug.getContractDataForNetworkID(chainId)
 
         if(this.connectedToWeb3){
-           this.currencyTokensOptionsList= BuyTheFloorHelper.getClientConfigForNetworkId(this.activeNetworkId).currencyTokens 
+           this.currencyTokensOptionsList= BurnbookHelper.getClientConfigForNetworkId(this.activeNetworkId).currencyTokens 
          
         }
 
@@ -238,12 +240,28 @@ export default {
   methods: {
 
         async updateBalances(){
+
+          let chainId = this.web3Plug.getActiveNetId()
           
-          let contractData = this.web3Plug.getContractDataForActiveNetwork()
+          let contractData = this.web3Plug.getContractDataForNetworkID(chainId)
 
           let activeAddress = this.web3Plug.getActiveAccountAddress()
           let currencyAddress = this.formInputs.tokenContractAddress
 
+          console.log('contractData',contractData)
+
+          let bbContractAddress = contractData['burnbook'].address
+
+          console.log('currencyAddress',currencyAddress)
+          
+          this.tokenBalances[currencyAddress] = await this.web3Plug.getTokenBalance(currencyAddress,activeAddress)
+          this.tokensApproved[currencyAddress] = await this.web3Plug.getTokenAllowance(currencyAddress,bbContractAddress,activeAddress)
+
+           this.currentBlockNumber = await this.web3Plug.getBlockNumber()
+        
+
+          console.log('approve', this.tokensApproved)
+          this.$forceUpdate()
 
         },
 
@@ -269,6 +287,22 @@ export default {
            
         },
 
+
+          async approveCurrencyToken(){
+              let contractData = this.web3Plug.getContractDataForActiveNetwork()
+
+              let activeAddress = this.web3Plug.getActiveAccountAddress()
+              let currencyAddress = this.formInputs.tokenContractAddress
+
+              let bbContractAddress = contractData['burnbook'].address
+              let currencyTokenContract = this.web3Plug.getTokenContract(currencyAddress)
+             
+             console.log('new approve' , bbContractAddress, this.ApproveAllAmount)
+              await currencyTokenContract.methods.approve(bbContractAddress, this.ApproveAllAmount ).send({from:activeAddress})
+
+          },
+
+
          selectedCurrencyIsApproved() {
  
             return (this.tokensApproved[this.formInputs.tokenContractAddress] >= parseInt(this.getTokenBidAmountRaw()))
@@ -281,12 +315,22 @@ export default {
           return this.web3Plug.rawAmountToFormatted( this.getSelectedCurrencyBalance(), this.formInputs.tokenDecimals ) 
         },
 
-          approveButtonVisible() {
- 
-            return (this.tokensApproved[this.formInputs.tokenContractAddress] == 0)
-          },
+       approveButtonVisible() {
+            let chainId = this.web3Plug.getActiveNetId()
+            let approveAndCall = false 
 
-            getTokenBurnAmountRaw(){
+            let currencyAddress = this.formInputs.tokenContractAddress
+            if(currencyAddress){
+              let tokenContractData = BurnbookHelper.getConfigFromContractAddress( currencyAddress , chainId  )
+              approveAndCall = tokenContractData.approveAndCall
+
+            }
+            
+ 
+            return (!approveAndCall && this.tokensApproved[this.formInputs.tokenContractAddress] == 0)
+        },
+
+        getTokenBurnAmountRaw(){
           return this.web3Plug.formattedAmountToRaw( this.formInputs.tokenBidAmountFormatted, this.formInputs.tokenDecimals ) 
         },
 
@@ -294,11 +338,46 @@ export default {
           return this.web3Plug.rawAmountToFormatted( this.getTokenBurnAmountRaw(), this.formInputs.tokenDecimals ) 
         },
 
-        burnTokens(){
+        async burnTokens(){
+
+              let chainId = this.web3Plug.getActiveNetId()
+
+              let contractData = this.web3Plug.getContractDataForNetworkID(chainId)
+
+              let bbContractAddress = contractData['burnbook'].address
+
+             // let burnbookContract = this.web3Plug.getCustomContract(BurnBookABI, bbContractAddress)
 
 
-          
-        }
+
+              let activeAddress = this.web3Plug.getActiveAccountAddress()
+              let currencyAddress = this.formInputs.tokenContractAddress
+
+              let tokenContractData = BurnbookHelper.getConfigFromContractAddress( currencyAddress , chainId  )
+
+              let tokenContract = this.web3Plug.getTokenContract(currencyAddress)
+
+               
+
+              let approveAndCall = tokenContractData.approveAndCall
+
+              let amountToBurn = this.getTokenBurnAmountRaw()
+
+              if(approveAndCall){
+
+                let result =  await tokenContract.methods.approveAndCall(bbContractAddress,amountToBurn,"0x0").send({from: activeAddress })
+                this.burnSubmitComplete = true 
+              }else{
+
+                 
+
+              }
+
+
+        },
+        resetForm(){
+           this.burnSubmitComplete = false 
+        },
 
 
 

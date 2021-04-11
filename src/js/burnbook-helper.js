@@ -6,7 +6,7 @@
  const contractDataLookup = require('../config/generated/contractlookup.json')
  import BigNumber from 'bignumber.js'
 
-export default class BuyTheFloorHelper {
+export default class BurnbookHelper {
 
     constructor( ){
       
@@ -33,6 +33,24 @@ export default class BuyTheFloorHelper {
 
     }
      
+    static getConfigFromContractAddress( address,  netId )
+  {
+    let networkName = 'mainnet'
+    if(netId == 5){
+      networkName = 'goerli'
+    }
+
+    let projectId=0;
+ 
+    let contractData = contractDataLookup[networkName][address.toLowerCase()][projectId]
+    if(contractData){
+      return contractData 
+    }
+      
+    return null
+  }
+
+
 
     static getNameFromContractAddress( address,projectId, netId )
   {
@@ -90,18 +108,7 @@ export default class BuyTheFloorHelper {
 
   }
 
-  static getNFTTypeDataFromName(name, chainId){
-    let nftTypesArray = BuyTheFloorHelper.getClientConfigForNetworkId(chainId).nftTypes
-
-    let nftTypes = {}
-
-    for(let type of nftTypesArray){
-      nftTypes[type.name] = type
-    }
-
-    return nftTypes[name]
-  }
-
+   
 
   static rawAmountToFormatted(amount,decimals)
   {
