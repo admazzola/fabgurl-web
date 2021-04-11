@@ -1,6 +1,6 @@
 <template>
   <div class=" ">
-     <table class="table-auto w-full">
+     <table class="table-auto w-full sm:text-md text-sm ">
           <thead>
             <tr>
               <th style="text-align:left" v-for="(label, index) in labelsArray">{{label}}</th>

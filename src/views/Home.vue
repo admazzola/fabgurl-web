@@ -17,24 +17,27 @@
 
    <div class="section  bg-white border-b-2 border-black">
      <div class=" w-container">
-       <div class="w-row">
-
-       </div>
+       
        <div class="w-row">
 
          
 
+         <div class="  w-col   mt-8  flex ">
+           <div class="flex-grow"> </div>
+            <div class="my-2 mb-8 bg-red-500 px-1 border-2 border-black text-white rounded inline-block cursor-pointer select-none" @click="clickedBurnButton"> I want to Burn </div>
+ 
+           </div>
 
-         <div class="  w-col   mt-8 py-8">
+         <div class="  w-col   mb-8 ">
 
            <div> Top Burners </div>
 
-            <div class="my-2 mb-8 bg-teal-500 px-1 border-2 border-black text-white rounded inline-block"> 0xBTC </div>
+            <div class="my-2 mb-8 bg-orange-500 px-1 border-2 border-black text-white rounded inline-block"> 0xBTC </div>
 
           <GenericTable 
           v-bind:labelsArray="['from', 'amount']"
           v-bind:rowsArray="burnRowsArray"
-          
+          v-bind:clickedRowCallback="onBurnRowClicked"
           />
 
 
@@ -166,7 +169,22 @@ export default {
 
 
 
-          } 
+          },
+
+          onBurnRowClicked(rowData){
+
+            let chainId = this.web3Plug.getActiveNetId()
+            if(!chainId) chainId = 1;
+ 
+
+            let url = this.web3Plug.getExplorerLinkForAddress(rowData.from, chainId)
+             window.location.href = url 
+          },
+
+          clickedBurnButton(){
+            this.$router.push('/burn')
+
+          }
 
        
 

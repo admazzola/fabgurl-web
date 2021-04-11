@@ -204,8 +204,8 @@ export default class Web3Plug {
   }
 
 
-  getExplorerLinkForAddress(address){
-    let chainId = this.getActiveNetId()
+  getExplorerLinkForAddress(address,chainId){
+    
     
     return this.getChainExplorerURL(chainId).concat('/address/').concat(address)
 

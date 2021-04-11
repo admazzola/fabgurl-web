@@ -3,6 +3,7 @@ import Router from 'vue-router'
 
 
 import Home from './views/Home.vue'
+import Burn from './views/Burn.vue'
  
 import Dashboard from './views/Dashboard.vue'
 
@@ -21,6 +22,13 @@ export default new Router({
       name: 'home',
       component: Home
     } ,
+
+    {
+      path: '/burn',
+      name: 'burn',
+      component: Burn
+    } ,
+
 
     {
       path: '/dashboard',
